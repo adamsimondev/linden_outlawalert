@@ -1,40 +1,35 @@
-ESX = nil
+QBCore = nil
 notLoaded, currentStreetName, intersectStreetName, lastStreet, speedlimit, nearbyPeds, isPlayerWhitelisted, playerPed, playerCoords, job, rank, firstname, lastname, phone = true
 
-Citizen.CreateThread(function()
-	while ESX == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-        Citizen.Wait(10)
-	end
-	while ESX.GetPlayerData().job == nil do
-		Citizen.Wait(10)
-	end
-	ESX.PlayerData = ESX.GetPlayerData()
-	GetPlayerInfo()
+CreateThread(function()
+    while QBCore == nil do
+        TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
+        Wait(200)
+    end
+    while QBCore.Functions.GetPlayerData().job == nil do
+        Wait(100)
+    end
+    QBCore.PlayerData = QBCore.Functions.GetPlayerData()
+    GetPlayerInfo()
 end)
 
-RegisterNetEvent('esx:playerLoaded')
-AddEventHandler('esx:playerLoaded', function(playerData)
-	ESX.PlayerData = playerData
-	GetPlayerInfo()
+RegisterNetEvent("QBCore:Client:OnPlayerLoaded")
+AddEventHandler("QBCore:Client:OnPlayerLoaded", function()
+    GetPlayerInfo()
 end)
 
-RegisterNetEvent('esx:setJob')
-AddEventHandler('esx:setJob', function(job)
-    ESX.PlayerData = ESX.GetPlayerData()
-    job = ESX.PlayerData.job.name
-    rank = ESX.PlayerData.job.grade_label
+RegisterNetEvent('QBCore:Client:OnJobUpdate')
+AddEventHandler('QBCore:Client:OnJobUpdate', function(JobInfo)
+    job = QBCore.PlayerData.job.name
+    rank = QBCore.PlayerData.job.grade
     isPlayerWhitelisted = refreshPlayerWhitelisted()
 end)
 
 function GetPlayerInfo()
-	ESX.TriggerServerCallback('linden_outlawalert:getCharData', function(chardata)
-        firstname = chardata.firstname
-        lastname = chardata.lastname
-        phone = chardata.phone_number
-        if firstname == nil then Citizen.Wait(1000) end
-    end)
-	job = ESX.PlayerData.job.name
-    rank = ESX.PlayerData.job.grade_label
+    firstname = QBCore.PlayerData.charinfo.firstname
+    lastname = QBCore.PlayerData.charinfo.lastname
+    phone = QBCore.PlayerData.charinfo.phone
+	job = QBCore.PlayerData.job.name
+    rank = QBCore.PlayerData.job.grade
     isPlayerWhitelisted = refreshPlayerWhitelisted()
 end

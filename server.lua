@@ -1,21 +1,21 @@
--- ESX Framework Stuff ---------------------------------------------------------------
-ESX = nil
-TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+-- Framework Stuff ---------------------------------------------------------------
+QBCore = nil
+TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
 
-ESX.RegisterServerCallback('linden_outlawalert:getCharData', function(source, cb)
-	local xPlayer = ESX.GetPlayerFromId(source)
+QBCore.Functions.CreateCallback('linden_outlawalert:getCharData', function(source, cb)
+	local xPlayer = QBCore.Functions.GetPlayer(source)
 	if not xPlayer then return end
 
-    local identifier = xPlayer.getIdentifier()
-    MySQL.Async.fetchAll('SELECT firstname, lastname, phone_number FROM users WHERE identifier = @identifier', {
+    local identifier = xPlayer.PlayerData.citizenid
+    QBCore.Functions.ExecuteSql(true, 'SELECT firstname, lastname, phone_number FROM users WHERE identifier = @identifier', {
 		['@identifier'] = identifier
 	}, function(results)
 		cb(results[1])
 	end)
 end)
 
-ESX.RegisterServerCallback('linden_outlawalert:isVehicleOwned', function(source, cb, plate)
-	MySQL.Async.fetchAll('SELECT plate FROM owned_vehicles WHERE plate = @plate', {
+QBCore.Functions.CreateCallback('linden_outlawalert:isVehicleOwned', function(source, cb, plate)
+	QBCore.Functions.ExecuteSql(true, 'SELECT plate FROM player_vehicles WHERE plate = @plate', {
 		['@plate'] = plate
 	}, function(result)
 		if result[1] then
@@ -25,7 +25,13 @@ ESX.RegisterServerCallback('linden_outlawalert:isVehicleOwned', function(source,
 		end
 	end)
 end)
--- ESX Framework Stuff ---------------------------------------------------------------
+
+-- Framework Stuff ---------------------------------------------------------------
+
+-- Locales
+function _U(entry)
+	return Locales[ Config.Locale ][entry] 
+end
 
 local dispatchCodes = {
 

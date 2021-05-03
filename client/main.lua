@@ -9,14 +9,18 @@ function getStreetandZone(coords)
 end
 
 function refreshPlayerWhitelisted()
-	if not ESX.PlayerData then return false end
-    if not ESX.PlayerData.job then return false end
+	if not QBCore.PlayerData then return false end
+    if not QBCore.PlayerData.job then return false end
     for k,v in ipairs({'police'}) do
-		if v == ESX.PlayerData.job.name then
+		if v == QBCore.PlayerData.job.name then
 			return true
 		end
 	end
 	return false
+end
+
+function _U(entry)
+	return Locales[ Config.Locale ][entry] 
 end
 
 function BlacklistedWeapon(playerPed)
@@ -78,6 +82,14 @@ function zoneChance(type, zoneMod, street)
     return sendit
 end
 
+function Trim(value)
+	if value then
+		return (string.gsub(value, "^%s*(.-)%s*$", "%1"))
+	else
+		return nil
+	end
+end
+
 function vehicleData(vehicle)
     local vData = {}
     local vehicleClass = GetVehicleClass(vehicle)
@@ -96,7 +108,7 @@ function vehicleData(vehicle)
             vehicleColour = "Unknown"
         end
     end
-    local plate = ESX.Math.Trim(GetVehicleNumberPlateText(vehicle))
+    local plate = Trim(GetVehicleNumberPlateText(vehicle))
     local doorCount = 0
     if GetEntityBoneIndexByName(vehicle, 'door_pside_f') ~= -1 then doorCount = doorCount + 1 end
     if GetEntityBoneIndexByName(vehicle, 'door_pside_r') ~= -1 then doorCount = doorCount + 1 end
@@ -162,13 +174,13 @@ AddEventHandler('wf-alerts:clNotify', function(pData)
     if pData ~= nil then
 		local sendit = false
 		for i=1, #pData.recipientList do
-			if pData.recipientList[i] == ESX.PlayerData.job.name then sendit = true break end
+			if pData.recipientList[i] == QBCore.PlayerData.job.name then sendit = true break end
 		end
 		if sendit then
 			Citizen.Wait(1500)
 			if not pData.length then pData.length = 4000 end
 			pData.street = getStreetandZone(vector3(pData.coords.x, pData.coords.y, pData.coords.z))
-			SendNUIMessage({action = 'display', info = pData, job = ESX.PlayerData.job.name, length = pData.length})
+			SendNUIMessage({action = 'display', info = pData, job = QBCore.PlayerData.job.name, length = pData.length})
 			PlaySound(-1, "Event_Message_Purple", "GTAO_FM_Events_Soundset", 0, 0, 1)
 			createBlip(pData)
 		end
@@ -236,7 +248,7 @@ Citizen.CreateThread(function()
                         elseif Config.Timer['Autotheft'] == 0 and (IsPedGettingIntoAVehicle(playerPed) and GetSeatPedIsTryingToEnter(playerPed) == -1) and ((driver > 0 and not IsPedAPlayer(driver)) or IsVehicleAlarmActivated(vehicle)) then
                             sleep = 100
                             local veh = vehicleData(vehicle)
-                            ESX.TriggerServerCallback('linden_outlawalert:isVehicleOwned', function(hasowner) veh.owned = hasowner end, veh.plate)
+                            QBCore.Functions.TriggerCallback('linden_outlawalert:isVehicleOwned', function(hasowner) veh.owned = hasowner end, veh.plate)
                             if not veh.owned then
                                 if zoneChance('Autotheft', 2, currentStreetName) then
                                     data = {dispatchCode = 'autotheft', caller = _U('caller_local'), coords = playerCoords, netId = veh.id,
@@ -276,7 +288,7 @@ Citizen.CreateThread(function()
     end
 end)
 
-AddEventHandler('esx:onPlayerDeath', function(reason)
+AddEventHandler('hospital:server:SetDeathStatus', function()
     local netId = NetworkGetNetworkIdFromEntity(playerPed)
     local name = ('%s %s'):format(firstname, lastname)
     local title = ('%s %s'):format(rank, lastname)
